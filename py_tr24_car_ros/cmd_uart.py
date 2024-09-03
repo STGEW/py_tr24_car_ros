@@ -4,25 +4,17 @@ import serial
 import rclpy
 from rclpy.node import Node
 
-from tr24_ros_interfaces.msg import CarEnginesState
 from std_msgs.msg import String
+
+from py_tr24_car_ros.parser import Parser
+from py_tr24_car_ros.parser import Point2D_C, Vehicle2DPosition_C
+
+from tr24_ros_interfaces.msg import Point2D, Position2D
 
 
 serial_port = '/dev/ttyUSB0'
 baud_rate = 460800
 timeout = 0
-uart_read_buff_size = 256
-text_done = 'done'
-text_abort = 'abort'
-text_ok = 'ok'
-
-resps = [text_done, text_ok, text_abort]
-
-
-class Point2D(ctypes.Structure):
-    _fields_ = [("x", ctypes.c_float),
-                ("y", ctypes.c_float)]
-    _pack_ = 1  # Ensure the struct is packed (no padding between fields)
 
 
 class CmdUart(Node):
@@ -30,30 +22,27 @@ class CmdUart(Node):
     def __init__(self):
         super().__init__('cmd_uart')
 
-        self._uart_buff = [''] * 6
+        self._p = Parser(
+            self.from_car_cmd_cb, 
+            self.from_car_new_pos_cb,
+            self.get_logger())
 
         self._ser = serial.Serial(
             serial_port, baud_rate, timeout=timeout)
 
-        # a response from car (done/abort/ok)
-        self._pub_resp_from_car = self.create_publisher(
-            String,
-            'resp_from_car',
-            10)
+        # FROM CAR
+        self._pub_from_car_cmd = self.create_publisher(
+            String, 'from_car_cmd', 10)
+        self._pub_from_car_pos = self.create_publisher(
+            Position2D, 'from_car_pos', 20)
 
-        # new coords for car
-        self._sub_car_new_coords = self.create_subscription(
-            CarEnginesState,
-            'car_new_coords',
-            self.car_new_coords_cb,
-            10)
-
-        # stop cmd
-        self._sub_car_stop = self.create_subscription(
-            String,
-            'car_stop_cmd',
-            self.car_stop_cb,
-            10)
+        # TO CAR
+        self._sub_to_car_new_coord = self.create_subscription(
+            Point2D, 'to_car_new_coords',
+            self.to_car_new_coord_cb, 10)
+        self._sub_to_car_stop = self.create_subscription(
+            String, 'to_car_cmd_stop',
+            self.to_car_stop_cb, 10)
 
         # timer to read from uart
         uart_timer_period = 0.05 # 20 Hz
@@ -61,51 +50,70 @@ class CmdUart(Node):
         self._uart_timer = self.create_timer(
             uart_timer_period,
             self.uart_read_routine)
-        self.i = 0
+
 
     def uart_read_routine(self):
         # self.get_logger().info(
         #     f"UART ROUTINE")
-        data = self._ser.read(uart_read_buff_size)
+        data = self._ser.read(256)
         if data:
-            data = data.decode('utf-8', errors='ignore')
-            self.get_logger().info(
-                f"Received: '{data}'")
-            for s in data:
-                self._uart_buff = self._uart_buff[1:] + [s]
-                buff = ''.join(self._uart_buff)
-                # self.get_logger().info(
-                #     f"buff: '{buff}'")
-                for r in resps:
-                    if buff[-len(r):] == r:
-                        self._pub_text(r)
-                        break
+            # self.get_logger().info(
+            #     f"UART raw read: '{data}'")
+            self._p.write(data)
 
-    def car_new_coords_cb(self, msg):
+
+    def from_car_new_pos_cb(self, veh_pos):
+        msg = Position2D()
+        msg.x = veh_pos.p.x
+        msg.y = veh_pos.p.y
+        msg.phi = veh_pos.phi
         self.get_logger().info(
-            f'New coordinates for car. '
-            f'Left: {msg.left} right: {msg.right}')
+            f'From car new pos will be published; '
+            f'x: {msg.x} y: {msg.y} phi: {msg.phi}')
+        self._pub_from_car_pos.publish(msg)
 
-        point = Point2D(
-            x=float(msg.left),
-            y=float(msg.right))
+
+    def from_car_cmd_cb(self, cmd):
+        msg = String()
+        msg.data = cmd
+        self.get_logger().info(
+            f'From car cmd be published; '
+            f'cmd: {msg.data}')
+        self._pub_from_car_cmd.publish(msg)
+
+
+    def to_car_new_coord_cb(self, msg):
+        self.get_logger().info(
+            f'To car new coord; '
+            f'x: {msg.x} y: {msg.y}')
+
+        point = Point2D_C(
+            x=float(msg.x),
+            y=float(msg.y))
+
+        size_of_point = ctypes.sizeof(point)
 
         # Convert the struct to bytes
         point_bytes = ctypes.string_at(
-            ctypes.byref(point), ctypes.sizeof(point))
+            ctypes.addressof(point),
+            size_of_point)
+
         self._ser.write("LF".encode())
-        size_of_point = ctypes.sizeof(point)
-        self._ser.write(ctypes.c_ubyte(
-            size_of_point).value.to_bytes(1, byteorder='little'))
+        self._ser.write(
+            size_of_point.to_bytes(
+                1, byteorder='little'))
         self._ser.write(point_bytes)
 
-    def car_stop_cb(self, msg):
-        self.get_logger().info(f'New stop cmd for car')
+
+    def to_car_stop_cb(self, msg):
+        self.get_logger().info(
+            f'To car new cmd: stop')
         s = ctypes.c_ubyte(4).value.to_bytes(
             1, byteorder='little')
         self._ser.write('TR'.encode())
         self._ser.write(s)
         self._ser.write('stop'.encode())
+
 
     def _pub_text(self, text):
         self.get_logger().info(

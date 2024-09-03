@@ -4,7 +4,7 @@ package_name = 'py_tr24_car_ros'
 
 setup(
     name=package_name,
-    version='0.0.1',
+    version='0.0.3',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -23,9 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'talker = py_tr24_car_ros.publisher_member_function:main',
-            'listener = py_tr24_car_ros.subscriber_member_function:main',
-            'cmd_uart = py_tr24_car_ros.cmd_uart:main'
+            'car_logger = py_tr24_car_ros.car_logger:main',
+            'cmd_uart = py_tr24_car_ros.cmd_uart:main',
         ],
     },
 )
