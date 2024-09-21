@@ -8,10 +8,10 @@ from rclpy.node import Node
 
 
 serial_port = '/dev/ttyUSB1'
-baud_rate = 460800
+baud_rate = 115200
 timeout = 0
 
-log_directory = '/home/afomin/logs'
+log_directory = '/home/car/logs'
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
