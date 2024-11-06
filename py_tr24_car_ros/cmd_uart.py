@@ -5,17 +5,17 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
-
+from py_tr24_car_ros.utils import get_uart_path
 from py_tr24_car_ros.parser import Parser
 from py_tr24_car_ros.parser import Point2D_C, Vehicle2DPosition_C
 
 from tr24_ros_interfaces.msg import Point2D, Position2D
 
 
-serial_port = '/dev/ttyUSB0'
-baud_rate = 460800
+CMD_UART_PID = 24577
+CMD_UART_VID = 1027
+CMD_UART_BR = 460800
 timeout = 0
-
 
 class CmdUart(Node):
 
@@ -27,8 +27,9 @@ class CmdUart(Node):
             self.from_car_new_pos_cb,
             self.get_logger())
 
+        serial_port = get_uart_path(CMD_UART_PID, CMD_UART_VID)
         self._ser = serial.Serial(
-            serial_port, baud_rate, timeout=timeout)
+            serial_port, CMD_UART_BR, timeout=timeout)
 
         # FROM CAR
         self._pub_from_car_cmd = self.create_publisher(

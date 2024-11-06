@@ -5,11 +5,12 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+
 def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
-    urdf_file_name = 'small_tank.urdf.xml'
+    urdf_file_name = 'rc_car.urdf.xml'
     urdf = os.path.join(
         get_package_share_directory('py_tr24_car_ros'),
         urdf_file_name)

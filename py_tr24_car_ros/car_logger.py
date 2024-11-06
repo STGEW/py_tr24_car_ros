@@ -6,12 +6,16 @@ import os
 import rclpy
 from rclpy.node import Node
 
+from py_tr24_car_ros.utils import get_uart_path
 
-serial_port = '/dev/ttyUSB1'
-baud_rate = 115200
+
+LOG_UART_PID = 29987
+LOG_UART_VID = 6790
+LOG_UART_BR = 460800
 timeout = 0
 
-log_directory = '/home/car/logs'
+log_directory = os.path.join(os.path.expanduser("~"), 'logs')
+
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
@@ -35,8 +39,9 @@ class CarLogger(Node):
     def __init__(self):
         super().__init__('car_logger')
 
+        serial_port = get_uart_path(LOG_UART_PID, LOG_UART_VID)
         self._ser = serial.Serial(
-            serial_port, baud_rate, timeout=timeout)
+            serial_port, LOG_UART_BR, timeout=timeout)
 
         # timer to read from uart
         uart_logger_timer_period = 0.05 # 20 Hz

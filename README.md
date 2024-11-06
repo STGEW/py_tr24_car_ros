@@ -6,18 +6,19 @@ source /opt/ros/humble/setup.bash
 source /opt/ros/foxy/setup.bash
 ```
 
-
+How to build ROS packages:
 ```
 cd ~/ros2_ws/src
 colcon build
 ```
 
+After build you have to update env vars
 ```
-cd ~/ros2_ws/src/src
-source ros2_venv/bin/activate
+cd ~/ros2_ws/src
+source ./install/setup.bash 
 ```
 
-
+Here how you can run the ROS nodes
 ```
 ros2 run py_tr24_car_ros cmd_uart
 ros2 run py_tr24_car_ros car_logger
@@ -25,6 +26,7 @@ ros2 run py_tr24_car_ros car_logger
 
 # Send something once to the ROS topic
 ```
+ros2 topic pub -1 /to_car_new_coords tr24_ros_interfaces/msg/Point2D "{x: 0.50, y: 0.0}"
 ros2 topic pub -1 /to_car_new_coords tr24_ros_interfaces/msg/Point2D "{x: 4.02, y: 3.4}"
 ```
 
