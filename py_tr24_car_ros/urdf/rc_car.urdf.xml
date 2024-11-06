@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<robot name="rc_car">
+
+  <!-- Link for the car body -->
+  <link name="car_body">
+    <visual>
+      <geometry>
+        <box size="0.26 0.1 0.065"/>
+      </geometry>
+      <material name="body">
+          <color rgba="0 1 1 0.7"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- Link for the front right wheel -->
+  <link name="front_right_wheel">
+    <visual> 
+        <geometry> 
+            <cylinder length="0.025" radius="0.0325"/>
+        </geometry>
+      <origin rpy="-1.57075 -1.57075 0"/>
+      <material name="front_right_wheel">
+          <color rgba="1 0 0 0.8"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- Joint for the front right wheel -->
+  <joint name="front_right_wheel_joint" type="fixed">
+    <parent link="car_body"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="0.06 -0.0625 0"/>
+  </joint>
+
+  <!-- Link for the front left wheel -->
+  <link name="front_left_wheel">
+    <visual> 
+        <geometry> 
+            <cylinder length="0.025" radius="0.0325"/>
+        </geometry>
+        <origin rpy="-1.57075 -1.57075 0"/>
+        <material name="front_left_wheel">
+            <color rgba="0 1 0 0.8"/>
+        </material>
+    </visual>
+  </link>
+
+  <!-- Joint for the front left wheel -->
+  <joint name="front_left_wheel_joint" type="fixed">
+    <parent link="car_body"/>
+    <child link="front_left_wheel"/>
+    <origin xyz="0.0625 0.06 0"/>
+  </joint>
+
+ <!-- Link for the rear right wheel -->
+  <link name="rear_right_wheel">
+    <visual> 
+        <geometry> 
+            <cylinder length="0.025" radius="0.0325"/>
+        </geometry>
+        <origin rpy="-1.57075 -1.57075 0"/>
+        <material name="rear_right_wheel">
+            <color rgba="0.7 0 0.4 0.8"/>
+        </material>
+    </visual>
+  </link>
+
+  <!-- Joint for the rear right wheel -->
+  <joint name="rear_right_wheel_joint" type="fixed">
+    <parent link="car_body"/>
+    <child link="rear_right_wheel"/>
+    <origin xyz="-0.06 -0.0625 0"/>
+  </joint>
+
+ <!-- Link for the rear left wheel -->
+  <link name="rear_left_wheel">
+    <visual> 
+        <geometry> 
+            <cylinder length="0.025" radius="0.0325"/>
+        </geometry>
+        <origin rpy="-1.57075 -1.57075 0"/>
+        <material name="rear_left_wheel">
+            <color rgba="0 0.4 0.4 0.8"/>
+        </material>
+    </visual>
+  </link>
+
+  <!-- Joint for the rear left wheel -->
+  <joint name="rear_left_wheel_joint" type="fixed">
+    <parent link="car_body"/>
+    <child link="rear_left_wheel"/>
+    <origin xyz="-0.06 0.0625 0"/>
+  </joint>
+
+</robot>
